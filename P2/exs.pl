@@ -65,7 +65,8 @@ parse([t(X)|R1],[t(X)|R2],Path):- parse(R1,R2,Path).
 %
 %parse([t(a),t(+),t(b)],[n(e)],Path).
 %Outputs: Path = [1, 4, 8, 6, 2, 4, 9, 6, 3]
-
+%parse([t(+),t(a),t(b)],[n(e)],Path).
+%Outputs: false.
 
 %Ex 3.
 
