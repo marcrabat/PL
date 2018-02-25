@@ -1,6 +1,17 @@
+/**
+*Ferran Cantariño i Iglesias - 173705
+*Marc Rabat Pla - 172808
+*/
 
-%Ex 1.
+/**
+*Ex 1. For instance, if we give the string [j,a,j,a,!] as
+*input, the parser should output [1,j,2,a,1,j,2,a,3,!,4]. 
+*Extend your practica 1 program to implement a
+*parser. Test your parser with different inputs.
+*/
 
+
+%Declaration of the automata
 initial(1).
 final(4).
 arc(1,2,j).
@@ -8,13 +19,20 @@ arc(2,3,a).
 arc(3,4,!).
 arc(2,1,a).
 
-recognize(I,[State|Path]):- initial(State), r1(State,I,Path).
-r1(State,[Caracter|R],[Caracter,Next|Path]):- arc(State,Next,Caracter), r1(Next,R,Path).
+recognize(Input,[State|Path]):- initial(State), r1(State,Input,Path).
+
+%Base
 r1(State,[],[]):- final(State).
+
+%Recursion Part
+r1(State,[Char|Rest],[Char,Next|Path]):- arc(State,Next,Char), r1(Next,Rest,Path).
+
 generate(X):-recognize(X).
 
-%Test:
-%recognize([j,a,j,a,!],Path), write(Path).
+%Testing:
+%
+%recognize([j,a,j,a,!],Path), write(Path). 
+%Outputs: [1,j,2,a,1,j,2,a,3,!,4], Path = [1, j, 2, a, 1, j, 2, a, 3|...] .
 
 
 %Ex 2.
@@ -34,7 +52,6 @@ rule( n(f) , [t(d)],11 ).
 parse([],[],[]).
 
 parse(I,[n(X)|R],[Node|Path]):- rule(n(X),B,Node), append(B,R,R1), parse(I,R1,Path).
-
 
 parse([t(X)|R1],[t(X)|R2],Path):- parse(R1,R2,Path).
 
