@@ -35,8 +35,12 @@ generate(X):-recognize(X).
 %Outputs: [1,j,2,a,1,j,2,a,3,!,4], Path = [1, j, 2, a, 1, j, 2, a, 3|...] .
 
 
-%Ex 2.
+/**
+*Ex 2. Extend you program to a full parser, which when presented with a string, 
+*outputs the sequence ofrules in the grammar used to derive the input string
+*/
 
+%Facts of the grammar:
 rule( n(e) , [n(g),n(e1)],1).
 rule( n(e1) , [t(+),n(g),n(e1)],2).
 rule( n(e1) , [ ],3).
@@ -49,15 +53,18 @@ rule( n(f) , [t(b)],9 ).
 rule( n(f) , [t(c)],10 ).
 rule( n(f) , [t(d)],11 ).  
 
+%Base:
 parse([],[],[]).
 
+%Recursion Part:
 parse(I,[n(X)|R],[Node|Path]):- rule(n(X),B,Node), append(B,R,R1), parse(I,R1,Path).
 
 parse([t(X)|R1],[t(X)|R2],Path):- parse(R1,R2,Path).
 
-%Test:
-
+%Testing:
+%
 %parse([t(a),t(+),t(b)],[n(e)],Path).
+%Outputs: Path = [1, 4, 8, 6, 2, 4, 9, 6, 3]
 
 
 %Ex 3.
