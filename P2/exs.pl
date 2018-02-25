@@ -68,7 +68,7 @@ parse([t(X)|R1],[t(X)|R2],Path):- parse(R1,R2,Path).
 %parse([t(+),t(a),t(b)],[n(e)],Path).
 %Outputs: false.
 
-%Ex 3.
+%Ex 3. Write a Prolog predicate to ‘look-up’ a name in the dictionary and find its paired value.
 
 dict(dic(sal,sel,
 
@@ -80,32 +80,24 @@ dict(dic(sal,sel,
 
     dic(vinagre,vinaigre,void,void))).
 
-   
 
 dic(Name,Value,DicL,DicR).
 
-   
-
 lookup(Name,dic(Name,Value,L,R),Value).
-
 
 lookup(Name,dic(NameD,ValueD,L,R),Value):- Name @< NameD, lookup(Name,L,Value).
 
-
 lookup(Name,dic(NameD,ValueD,L,R),Value):- NameD @< Name, lookup(Name,R,Value).
 
+look(Name,Value):- dict(D), lookup(Name,D,Value).
 
-look(Name,Value):-
-
-    dict(D),
-
-    lookup(Name,D,Value).
-
-
-%Test
-
+%Testing:
+%
 %look(mostaza,V).
-
+%Output: V = moutard 
+%
 %look(pebre,V).
-
+Output: V = poivre 
+%
 %look(vinagre,V).
+%Output: V = vinaigre 
