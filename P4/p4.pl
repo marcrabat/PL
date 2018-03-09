@@ -12,7 +12,6 @@ lookup(Name,dic(X,D,L,R),Value):- Name @< X, lookup(Name,L,Value).
 lookup(Name,dic(X,D,L,R),Value):- X @< Name, lookup(Name,R,Value).
 
 %Here is the declaration of the instructions operation with constant and operation in order that the compiler can map them.
-%We add here the operations of control transfer.
 
 opc(+,addc).
 opc(-,subc).
@@ -23,6 +22,8 @@ opx(+,add).
 opx(-,sub).
 opx(*,mul).
 opx(/,div).
+
+%We add here the operations of control transfer.
 
 opj(=,jumpne).
 opj(<, jumpge).
@@ -41,33 +42,35 @@ encodeexpr(name(X),D,instr(load,Addr)):- lookup(X,D,Addr).
 encodeexpr(expr(Op,Expr,const(Y)),D,(Ins;instr(Type,Y))):-encodeexpr(Expr,D,Ins),opc(Op,Type).
 encodeexpr(expr(Op,Expr,name(Y)),D,(Ins;instr(Type,Addr))):-encodeexpr(Expr,D,Ins),opx(Op,Type),lookup(Y,D,Addr).
 
-%%%NEWLINE
+%Converting "if" expression into assembly language using Ecode. Ecode allow us to return its codification
+%to assembly code. The substraction operation between Arg1 and Arg2 is it done in order to compare the result
+%with 0, >0 and <0.
 encodetest( test(OpJ,Arg1,Arg2),D,JumpLabel, (Ecode; instr(Type,JumpLabel)) ) :- encodeexpr(expr(-,Arg1,Arg2),D, Ecode), opj(OpJ, Type).
 
 %The following function receives as input an expression like "name = name + a"
 %It will outputs the memory @ in the dictionary and its translation to assembly language
 encodestatement(assign(name(X),Expr),D,(E_code;instr(store,Addr ))):-lookup(X,D,Addr),encodeexpr(Expr,D,E_code).
 
-%%%%% if encoding
+%% if encoding
 encodestatement(if(Test,Then,Else),D,(Testcode;Thencode;instr(jump,L2);label(L1);Elsecode;label(L2))):-
 		encodetest(Test,D,L1,Testcode),
 		encodestatement(Then,D,Thencode),
 		encodestatement(Else,D,Elsecode).
 
-%%%%while encoding
+%% while encoding
 
 encodestatement(while(Test,Then),D,(label(L2);Testcode;Thencode;instr(jump,L2);label(L1))):-
 		encodetest(Test,D,L1,Testcode),
 		encodestatement(Then,D,Thencode).
 
-%%Llegir input
+%%input encoding
 
 encodestatement( read(name(X)),D, instr(read,Addr) ) :- lookup(X,D,Addr).
 
-%%Outputs
+%%output encoding
 encodestatement( write(Expr),D, (Ecode; instr(write,0)) ) :- encodeexpr(Expr,D,Ecode).
 
-%%Concat
+%%sequence statement encoding
 encodestatement((S1;S2),D,(Code1;Code2)) :-	encodestatement(S1,D,Code1), encodestatement(S2,D,Code2).
 
 
@@ -75,18 +78,17 @@ encodestatement((S1;S2),D,(Code1;Code2)) :-	encodestatement(S1,D,Code1), encodes
 %TESTING:%
 %%%%%%%%%%
 
-%encodestatement(assign(name(x),const(a)),D,X).
+%encodestatement(if(test(=,name(x),const(5)), assign(name(x),const(1)), assign(name(x),const(2))),D,X).
 %%Outputs:
-%D = dic(x, _G913, _G917, _G918),
-%X = (instr(loadc, a);instr(store, _G913))
+%D = dic(x, _G1368, _G1372, _G1373),
+%X = (((instr(load, _G1368);instr(subc, 5));instr(jumpne, _G1344)); (instr(loadc, 1);instr(store, _G1368));instr(jump, _G1339);label(_G1344); (instr(loadc, 2);instr(store, _G1368));label(_G1339)) .
 
-
-%encodestatement(assign(name(x),name(y)),D,X).
+%encodestatement(while(test(=,name(x),const(5)),assign(name(x),expr(+,name(x),const(1)))),D,X).
 %%Outputs:
-%D = dic(x, _G913, _G917, dic(y, _G921, _G925, _G926)),
-%X = (instr(load, _G921);instr(store, _G913))
+%D = dic(x, _G1361, _G1365, _G1366),
+%X = (label(_G1328); ((instr(load, _G1361);instr(subc, 5));instr(jumpne, _G1342)); ((instr(load, _G1361);instr(addc, 1));instr(store, _G1361));instr(jump, _G1328);label(_G1342)) .
 
-%encodestatement(assign(name(x),expr(+,name(x),const(a))),D,X).
+%encodestatement((read(name(x));write(expr(+,name(x),const(1)))),D,X.
 %%Outputs:
-%D = dic(x, _G1068, _G1072, _G1073),
-%X = ((instr(load, _G1068);instr(addc, a));instr(store, _G1068))
+%D = dic(x, _G1315, _G1319, _G1320),
+%X = (instr(read, _G1315); (instr(load, _G1315);instr(addc, 1));instr(write, 0)) .
