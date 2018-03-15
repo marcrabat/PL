@@ -119,55 +119,54 @@ print_instr((Code1;Code2)) :- print_instr(Code1), print_instr(Code2).
 
 %compile(if(test(=,name(x),const(5)),assign(name(x),const(1)), assign(name(x),const(2))),C).
 %%Outputs:
-%	const(2))),C).
-%	instr.: load 10
-%	instr.: subc 5
-%	instr.: jumpne 7
-%	instr.: loadc 1
-%	instr.: store 10
-%	instr.: jump 9
-%	label:7
-%	instr.: loadc 2
-%	instr.: store 10
-%	label:9
+%	instr. load 10
+%	instr. subc 5
+%	instr. jumpne 7
+%	instr. loadc 1
+%	instr. store 10
+%	instr. jump 9
+%	       label:7
+%	instr. loadc 2
+%	instr. store 10
+%	       label:9
 %	C = ((((instr(load, 10);instr(subc, 5));instr(jumpne, 7)); (instr(loadc, 1);instr(store, 10));instr(jump, 9);label(7); (instr(loadc, 2);instr(store, 10));label(9));instr(halt, 0);block(1)) .
 
 %compile(while(test(=,name(x),const(5)),assign(name(x),expr(+,name(x),const(1)))),C).
 %%Outputs:
-%	label:1
-%	instr.: load 9
-%	instr.: subc 5
-%	instr.: jumpne 8
-%	instr.: load 9
-%	instr.: addc 1
-%	instr.: store 9
-%	instr.: jump 1
-%	label:8
+%	       label:1
+%	instr. load 9
+%	instr. subc 5
+%	instr. jumpne 8
+%	instr. load 9
+%	instr. addc 1
+%	instr. store 9
+%	instr. jump 1
+%	       label:8
 %	C = ((label(1); ((instr(load, 9);instr(subc, 5));instr(jumpne, 8)); ((instr(load, 9);instr(addc, 1));instr(store, 9));instr(jump, 1);label(8));instr(halt, 0);block(1)) .
 
 
 %compile((read(name(v));assign(name(c),const(1));assign(name(r),const(1));while(test(<,name(c),name(v)),
 %assign( name(c),expr(+,name(c),const(1)));assign(name(r),expr(*,name(r),name(c))));write(name(r))),C).
 %%Outputs: (we print only the pretty printed output, too large)
-%	instr.: read 21
-%	instr.: loadc 1
-%	instr.: store 19
-%	instr.: loadc 1
-%	instr.: store 20
-%	label:6
-%	instr.: load 19
-%	instr.: sub 21
-%	instr.: jumpge 16
-%	instr.: load 19
-%	instr.: addc 1
-%	instr.: store 19
-%	instr.: load 20
-%	instr.: mul 19
-%	instr.: store 20
-%	instr.: jump 6
-%	label:16
-%	instr.: load 20
-%	instr.: write 0
+%	instr. read 21
+%	instr. loadc 1
+%	instr. store 19
+%	instr. loadc 1
+%	instr. store 20
+%	       label:6
+%	instr. load 19
+%	instr. sub 21
+%	instr. jumpge 16
+%	instr. load 19
+%	instr. addc 1
+%	instr. store 19
+%	instr. load 20
+%	instr. mul 19
+%	instr. store 20
+%	instr. jump 6
+%	       label:16
+%	instr. load 20
+%	instr. write 0
 
 
 
