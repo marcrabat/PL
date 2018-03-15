@@ -68,27 +68,107 @@ encodestatement(while(Test,Then),D,(label(L2);Testcode;Thencode;instr(jump,L2);l
 encodestatement( read(name(X)),D, instr(read,Addr) ) :- lookup(X,D,Addr).
 
 %%output encoding
+
 encodestatement( write(Expr),D, (Ecode; instr(write,0)) ) :- encodeexpr(Expr,D,Ecode).
 
 %%sequence statement encoding
+
 encodestatement((S1;S2),D,(Code1;Code2)) :-	encodestatement(S1,D,Code1), encodestatement(S2,D,Code2).
 
+%translation of the source program
+
+compile(Source, (Code; instr(halt,0); block(L)) ) :-
+	encodestatement(Source,D,Code),
+	assemble(Code,1,N0),
+	N1 is N0+1,
+	allocate(D,N1,N),
+	print_instr(Code),
+	L is N-N1.
+	%write('halt'), write(' '), write('0'), nl,
+	%write('block'), write(' '), write('1'), nl.
+
+%Assembling a sequence of things
+
+assemble((Code1;Code2),N0,N):- assemble(Code1,N0,N1), assemble(Code2,N1,N).
+
+%Assembling a single instruction
+
+assemble(instr(_,_),N0,N):- N is N0+1.
+
+%Assembling a label
+
+assemble(label(N),N,N).
+
+%Code to allocate
+allocate(void,N,N):- !.
+allocate(dic(Name,N1,Before,After),N0,N):-
+	allocate(Before,N0,N1),
+	N2 is N1+1,
+	allocate(After,N2,N).
+
+
+%Printing in a friendly way
+
+print_instr(label(N)):- write('       label:'), write(N), nl. 
+print_instr(instr(I,N)) :- write('instr. '), write(I), write(' '), write(N), nl . 
+print_instr((Code1;Code2)) :- print_instr(Code1), print_instr(Code2).
 
 %%%%%%%%%%
 %TESTING:%
 %%%%%%%%%%
 
-%encodestatement(if(test(=,name(x),const(5)), assign(name(x),const(1)), assign(name(x),const(2))),D,X).
+%compile(if(test(=,name(x),const(5)),assign(name(x),const(1)), assign(name(x),const(2))),C).
 %%Outputs:
-%D = dic(x, _G1368, _G1372, _G1373),
-%X = (((instr(load, _G1368);instr(subc, 5));instr(jumpne, _G1344)); (instr(loadc, 1);instr(store, _G1368));instr(jump, _G1339);label(_G1344); (instr(loadc, 2);instr(store, _G1368));label(_G1339)) .
+%	const(2))),C).
+%	instr.: load 10
+%	instr.: subc 5
+%	instr.: jumpne 7
+%	instr.: loadc 1
+%	instr.: store 10
+%	instr.: jump 9
+%	label:7
+%	instr.: loadc 2
+%	instr.: store 10
+%	label:9
+%	C = ((((instr(load, 10);instr(subc, 5));instr(jumpne, 7)); (instr(loadc, 1);instr(store, 10));instr(jump, 9);label(7); (instr(loadc, 2);instr(store, 10));label(9));instr(halt, 0);block(1)) .
 
-%encodestatement(while(test(=,name(x),const(5)),assign(name(x),expr(+,name(x),const(1)))),D,X).
+%compile(while(test(=,name(x),const(5)),assign(name(x),expr(+,name(x),const(1)))),C).
 %%Outputs:
-%D = dic(x, _G1361, _G1365, _G1366),
-%X = (label(_G1328); ((instr(load, _G1361);instr(subc, 5));instr(jumpne, _G1342)); ((instr(load, _G1361);instr(addc, 1));instr(store, _G1361));instr(jump, _G1328);label(_G1342)) .
+%	label:1
+%	instr.: load 9
+%	instr.: subc 5
+%	instr.: jumpne 8
+%	instr.: load 9
+%	instr.: addc 1
+%	instr.: store 9
+%	instr.: jump 1
+%	label:8
+%	C = ((label(1); ((instr(load, 9);instr(subc, 5));instr(jumpne, 8)); ((instr(load, 9);instr(addc, 1));instr(store, 9));instr(jump, 1);label(8));instr(halt, 0);block(1)) .
 
-%encodestatement((read(name(x));write(expr(+,name(x),const(1)))),D,X.
-%%Outputs:
-%D = dic(x, _G1315, _G1319, _G1320),
-%X = (instr(read, _G1315); (instr(load, _G1315);instr(addc, 1));instr(write, 0)) .
+
+%compile((read(name(v));assign(name(c),const(1));assign(name(r),const(1));while(test(<,name(c),name(v)),
+%assign( name(c),expr(+,name(c),const(1)));assign(name(r),expr(*,name(r),name(c))));write(name(r))),C).
+%%Outputs: (we print only the pretty printed output, too large)
+%	instr.: read 21
+%	instr.: loadc 1
+%	instr.: store 19
+%	instr.: loadc 1
+%	instr.: store 20
+%	label:6
+%	instr.: load 19
+%	instr.: sub 21
+%	instr.: jumpge 16
+%	instr.: load 19
+%	instr.: addc 1
+%	instr.: store 19
+%	instr.: load 20
+%	instr.: mul 19
+%	instr.: store 20
+%	instr.: jump 6
+%	label:16
+%	instr.: load 20
+%	instr.: write 0
+
+
+
+
